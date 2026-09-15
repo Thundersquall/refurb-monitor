@@ -45,8 +45,11 @@ def check_stock():
             href = a_tag["href"]
             title = a_tag.get_text(strip=True)
             
-            # 锁定 16 Pro（过滤掉 Pro Max）
-            if "/jp/shop/product/" in href and "16 Pro" in title and "Pro Max" not in title:
+            # 只锁定 128GB 和 256GB，排除大容量刺客与 Pro Max
+            target_capacities = ["128GB", "256GB"]
+            has_target_capacity = any(cap in title for cap in target_capacities)
+            
+            if "/jp/shop/product/" in href and "16 Pro" in title and "Pro Max" not in title and has_target_capacity:
                 full_link = BASE_URL + href if href.startswith("/") else href
                 products_found.append({"title": title, "url": full_link})
 
