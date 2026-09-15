@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 from bs4 import BeautifulSoup
 
@@ -59,16 +60,22 @@ def check_stock():
         return []
 
 if __name__ == "__main__":
-    print("开始检测 Apple 官网 16 Pro 官翻库存...")
-    items = check_stock()
-    
-    if items:
-        print(f"🎯 发现现货: {len(items)} 款")
-        first_item = items[0]
-        send_push(
-            title="🔥 Apple 官网 16 Pro 官翻有货了！",
-            body=f"型号: {first_item['title']}\n共 {len(items)} 款可选，手慢无！",
-            url=first_item['url']
-        )
-    else:
-        print("暂无 16 Pro 库存。")
+    print("监控服务已启动，进入 24 小时轮询模式...")
+    while True:
+        try:
+            items = check_stock()
+            if items:
+                print(f"🎯 发现现货: {len(items)} 款")
+                first_item = items[0]
+                send_push(
+                    title="🔥 Apple 官网 16 Pro 官翻有货了！",
+                    body=f"型号: {first_item['title']}\n共 {len(items)} 款可选，手慢无！",
+                    url=first_item['url']
+                )
+            else:
+                print("暂无 16 Pro 库存。")
+        except Exception as e:
+            print(f"检测循环发生异常: {e}")
+        
+        # 30 秒轮询一次
+        time.sleep(30)
