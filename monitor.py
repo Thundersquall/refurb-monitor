@@ -1,11 +1,24 @@
-import os
-import time
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import requests
 from bs4 import BeautifulSoup
+import os
+import time
 
 # 从 GitHub Secrets 读取环境变量
 TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
 TG_CHAT_ID = os.getenv("TG_CHAT_ID")
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK")
+
+def run_health_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    server.serve_forever()
 
 APPLE_REFURB_URL = "https://www.apple.com/jp/shop/refurbished/iphone"
 BASE_URL = "https://www.apple.com"
@@ -60,6 +73,9 @@ def check_stock():
         return []
 
 if __name__ == "__main__":
+    # 后台启动假端口，供 Render 存活检测通过
+    threading.Thread(target=run_health_server, daemon=True).start()
+    
     print("监控服务已启动，进入 24 小时轮询模式...")
     while True:
         try:
