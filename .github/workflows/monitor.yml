@@ -1,0 +1,30 @@
+name: Apple Refurbished Monitor
+
+on:
+  schedule:
+    # 每 5 分钟执行一次 (UTC 时间)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # 支持网页端手动一键运行测试
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Run Stock Check
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          python monitor.py
