@@ -21,7 +21,7 @@ class HealthHandler(BaseHTTPRequestHandler):
 
 def run_health_server():
     port = int(os.environ.get("PORT", 10000))
-    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
     server.serve_forever()
 
 APPLE_REFURB_URL = "https://www.apple.com/jp/shop/refurbished/iphone"
