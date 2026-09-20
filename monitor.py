@@ -79,23 +79,44 @@ def check_stock():
 if __name__ == "__main__":
     # 后台启动假端口，供 Render 存活检测通过
     threading.Thread(target=run_health_server, daemon=True).start()
-    
     print("监控服务已启动，进入 24 小时轮询模式...")
+    
+    notified_urls = set()  # 记录已经通知过的商品链接，避免每 30 秒轰炸
+
     while True:
         try:
             items = check_stock()
-            if items:
-                print(f"🎯 发现现货: {len(items)} 款")
-                first_item = items[0]
+            current_urls = {item['url'] for item in items}
+
+            # 筛选出当前轮次“新上架”的机器
+            new_items = [item for item in items if item['url'] not in notified_urls]
+
+            if new_items:
+                print(f"🎯 发现新现货: {len(new_items)} 款 (总库存: {len(items)} 款)")
+                
+                # 拼接多款商品的直达列表
+                lines = []
+                for idx, item in enumerate(new_items[:8], 1):  # 最多展示前 8 款，防止消息过长
+                    lines.append(f"{idx}. [{item['title']}]({item['url']})")
+                
+                body_text = "\n".join(lines)
+                if len(new_items) > 8:
+                    body_text += f"\n...等共 {len(new_items)} 款新上架！"
+
                 send_push(
-                    title="🔥 Apple 官网 16 Pro 官翻有货了！",
-                    body=f"型号: {first_item['title']}\n共 {len(items)} 款可选，手慢无！",
-                    url=first_item['url']
+                    title=f"🔥 Apple 官网 16 Pro 上架 ({len(new_items)} 款新货)",
+                    body=body_text,
+                    url=new_items[0]['url']
                 )
-            else:
+
+            # 更新已通知集合（自动清理已经卖完下架的机器）
+            notified_urls = current_urls
+
+            if not items:
                 print("暂无 16 Pro 库存。")
+
         except Exception as e:
             print(f"检测循环发生异常: {e}")
-        
+
         # 30 秒轮询一次
         time.sleep(30)
