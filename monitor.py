@@ -67,7 +67,7 @@ def check_stock():
             target_capacities = ["128GB", "256GB"]
             has_target_capacity = any(cap in title for cap in target_capacities)
             
-            if "/jp/shop/product/" in href and "15 Pro" in title and "Pro Max" not in title and has_target_capacity:
+            if "/jp/shop/product/" in href and "16 Pro" in title and "Pro Max" not in title and has_target_capacity:
                 full_link = BASE_URL + href if href.startswith("/") else href
                 products_found.append({"title": title, "url": full_link})
 
